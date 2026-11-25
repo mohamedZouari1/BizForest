@@ -37,6 +37,7 @@ Satellite imagery + machine learning + a web map + a mobile app, used to find **
 - [Data and methodology](#data-and-methodology)
 - [Tech stack](#tech-stack)
 - [Repository structure](#repository-structure)
+- [Download](#download)
 - [Getting started](#getting-started)
 - [Credits](#credits)
 
@@ -219,6 +220,14 @@ BizForest/
 
 ---
 
+## Download
+
+Get the Android APK from the [**latest release**](https://github.com/mohamedZouari1/BizForest/releases/latest), then open it on your phone to install. You may need to allow "Install unknown apps".
+
+The public APK runs in **local-only mode**: records are stored on the device, with no cloud sync. For cloud sync, build the app yourself with your own Firebase project (see below).
+
+---
+
 ## Getting started
 
 ### Mobile app
@@ -247,7 +256,7 @@ flutter run --dart-define-from-file=firebase_config.json          # on a device 
 flutter build apk --dart-define-from-file=firebase_config.json    # build an Android APK
 ```
 
-In VS Code, press **F5**: the included `.vscode/launch.json` passes the config automatically. Without a config, the app still runs, but cloud sync is turned off.
+In VS Code, press **F5**: the included `.vscode/launch.json` passes the config automatically. Without a config, the app runs in **local-only mode**: surveys, plantings and incidents are saved on the phone, with no cloud sync.
 
 - GPS, camera and internet permissions are described in [`NATIVE_SETUP.md`](bizerte_reforest_agent/NATIVE_SETUP.md).
 - **Optional field assistant:** open the Agent screen, paste an [OpenRouter](https://openrouter.ai) API key and choose a model. Without a key, the assistant uses its offline guide.
