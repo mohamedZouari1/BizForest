@@ -1,0 +1,74 @@
+/* ── SHARED NAV — used by all pages ─────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+nav.site-nav {
+  height: 64px;
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 2000;
+  flex-shrink: 0;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Google Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e8449;
+  text-decoration: none;
+  white-space: nowrap;
+  letter-spacing: -0.3px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+  margin-left: 20px;
+}
+
+.nav-link {
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5f6368;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  background: #f8f9fa;
+  color: #202124;
+}
+
+.nav-link.active {
+  background: #e6f4ea;
+  color: #1e8449;
+}
+
+.nav-cta {
+  margin-left: auto;
+  padding: 9px 22px;
+  border-radius: 6px;
+  background: #1e8449;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.nav-cta:hover {
+  background: #145a32;
+  color: white;
+}

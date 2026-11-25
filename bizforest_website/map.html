@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Map Platform — BizForest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="assets/nav.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #1e8449; --green-dark: #145a32; --green-light: #e6f4ea;
+      --accent: #1a73e8; --accent-light: #e8f0fe;
+      --text: #202124; --text2: #5f6368;
+      --border: #e0e0e0; --bg: #f8f9fa; --surface: #fff;
+      --red: #d93025; --red-light: #fce8e6;
+      --orange: #f29900; --orange-light: #fef7e0;
+      --yellow: #fbbc04;
+    }
+    body { font-family: 'Roboto', sans-serif; color: var(--text); background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    a { text-decoration: none; color: inherit; }
+
+    /* NAV — sizes synced with shared nav.css; body accounts for 64px */
+    nav.site-nav { flex-shrink: 0; }
+
+    /* LAYOUT */
+    .app { flex: 1; display: flex; overflow: hidden; }
+
+    /* SIDEBAR */
+    .sidebar { width: 340px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; position: relative; z-index: 100; }
+    .tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .tab { flex: 1; padding: 10px 4px 8px; border: none; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; font-weight: 500; color: var(--text2); border-bottom: 2px solid transparent; transition: all 0.15s; }
+    .tab-ic { font-size: 17px; }
+    .tab.on { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab:hover:not(.on) { color: var(--text); background: var(--bg); }
+    .panel { display: none; overflow-y: auto; flex-direction: column; flex: 1; }
+    .panel.on { display: flex; }
+    .ph { padding: 16px 16px 8px; flex-shrink: 0; }
+    .pt { font-family: 'Google Sans', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); }
+    .ps { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+    /* LAYERS PANEL */
+    .sec-title { font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; padding: 8px 16px 4px; }
+    .layer-row { display: flex; align-items: center; padding: 7px 16px; gap: 10px; cursor: pointer; transition: background 0.12s; }
+    .layer-row:hover { background: var(--bg); }
+    .ldot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .lname { flex: 1; font-size: 13px; }
+    .ltoggle { width: 34px; height: 18px; border-radius: 9px; border: none; background: var(--border); position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+    .ltoggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: white; transition: left 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+    .ltoggle.on { background: var(--accent); }
+    .ltoggle.on::after { left: 18px; }
+    .div { height: 1px; background: var(--border); margin: 6px 16px; }
+    .chip-row { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 16px 10px; }
+    .chip { padding: 5px 12px; border-radius: 14px; border: 1px solid var(--border); font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text2); transition: all 0.15s; font-family: 'Roboto', sans-serif; }
+    .chip.on { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+
+    /* DASHBOARD */
+    .kgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 16px 16px; }
+    .kcard { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+    .kval { font-family: 'Google Sans', sans-serif; font-size: 22px; font-weight: 700; line-height: 1; }
+    .klbl { font-size: 11px; color: var(--text2); margin-top: 4px; }
+    .pbar { margin-bottom: 14px; padding: 0 16px; }
+    .pbar-hd { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; }
+    .pbar-ct { font-size: 11px; color: var(--text2); }
+    .pbar-bg { height: 5px; background: var(--border); border-radius: 3px; }
+    .pbar-fill { height: 100%; border-radius: 3px; }
+    .rec-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-bottom: 1px solid var(--border); }
+    .rec-ic { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+    .rec-body { flex: 1; min-width: 0; }
+    .rec-title { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rec-meta { font-size: 11px; color: var(--text2); }
+    .badge { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 10px; }
+    .bg { background: var(--green-light); color: var(--green); }
+    .bo { background: var(--orange-light); color: #7d5700; }
+    .br { background: var(--red-light); color: var(--red); }
+    .bb { background: var(--accent-light); color: var(--accent); }
+
+    /* FORMS */
+    .fbody { padding: 0 16px 24px; }
+    .fg { margin-bottom: 14px; }
+    .fl { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
+    .fi, .fsel, .fta { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: 'Roboto', sans-serif; color: var(--text); background: var(--surface); outline: none; transition: border-color 0.15s; }
+    .fi:focus, .fsel:focus, .fta:focus { border-color: var(--accent); }
+    .fta { resize: vertical; min-height: 72px; }
+    .fsel { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%235f6368' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+    .alert { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; font-size: 12px; line-height: 1.5; }
+    .alert.or { background: var(--orange-light); color: #7d5700; }
+    .alert.rd { background: var(--red-light); color: var(--red); }
+    .alert.gn { background: var(--green-light); color: var(--green-dark); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 18px; border-radius: 5px; border: none; font-size: 13px; font-family: 'Roboto', sans-serif; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+    .btn-p { background: var(--green); color: white; width: 100%; margin-top: 6px; }
+    .btn-p:hover { background: var(--green-dark); }
+    .btn-d { background: var(--red); color: white; width: 100%; margin-top: 6px; }
+    .btn-d:hover { background: #b31412; }
+    .btn-s { background: var(--bg); color: var(--text2); border: 1px solid var(--border); }
+    .btn-s:hover { background: var(--border); }
+    .gps-box { border: 1px dashed var(--border); border-radius: 6px; padding: 12px; display: flex; align-items: center; gap: 10px; background: var(--bg); cursor: pointer; transition: border-color 0.15s; }
+    .gps-box:hover { border-color: var(--accent); }
+    .gps-main { font-size: 13px; font-weight: 500; }
+    .gps-sub { font-size: 11px; color: var(--text2); }
+
+    /* DRAW BOX */
+    .draw-box { border: 2px dashed var(--border); border-radius: 6px; padding: 14px; background: var(--bg); transition: all 0.2s; }
+    .draw-box.active { border-color: var(--accent); background: var(--accent-light); }
+    .draw-box .db-title { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+    .draw-box .db-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
+    .draw-box .db-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+    /* ZONES DASHBOARD */
+    .zone-item { border-bottom: 1px solid var(--border); padding: 10px 16px; cursor: pointer; transition: background 0.12s; }
+    .zone-item:hover { background: var(--bg); }
+    .zone-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .zone-name { font-size: 13px; font-weight: 500; flex: 1; }
+    .zone-body { font-size: 12px; color: var(--text2); display: flex; gap: 12px; }
+    .pri-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .zone-progress { height: 3px; background: var(--border); border-radius: 2px; margin-top: 6px; }
+    .zone-prog-fill { height: 100%; border-radius: 2px; background: var(--green); }
+    .filter-bar { display: flex; gap: 6px; padding: 8px 16px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+
+    /* MAP */
+    .map-wrap { flex: 1; position: relative; }
+    #map { width: 100%; height: 100%; }
+
+    /* DRAW OVERLAY — captures clicks on top of everything when drawing */
+    #draw-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      cursor: crosshair !important;
+      z-index: 500;
+      background: transparent;
+    }
+    #draw-overlay.active { display: block; }
+
+    /* Map controls */
+    .map-ctrl { position: absolute; right: 10px; bottom: 80px; display: flex; flex-direction: column; gap: 4px; z-index: 400; }
+    .mc { width: 36px; height: 36px; border-radius: 4px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,.15); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 17px; color: var(--text2); transition: background 0.15s; }
+    .mc:hover { background: var(--bg); }
+    .map-legend { position: absolute; left: 8px; bottom: 20px; background: rgba(255,255,255,.95); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 11px; z-index: 400; }
+    .map-legend h4 { font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .lg-row { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
+    .lg-sw { width: 10px; height: 10px; border-radius: 2px; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px); background: #323232; color: white; padding: 10px 18px; border-radius: 5px; font-size: 13px; z-index: 9999; transition: transform 0.25s ease; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* Leaflet popup */
+    .leaflet-popup-content-wrapper { border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+    .leaflet-popup-content { font-family: 'Roboto', sans-serif; font-size: 13px; margin: 10px 14px; min-width: 160px; }
+    .pop-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+    .pop-row { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 3px; color: #5f6368; }
+    .pop-val { font-weight: 500; color: #202124; }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="site-nav">
+    <a class="nav-logo" href="index.html">🌲 BizForest</a>
+    <div class="nav-links">
+      <a class="nav-link" href="index.html">Home</a>
+      <a class="nav-link active" href="map.html">Map Platform</a>
+      <a class="nav-link" href="data.html">Data & Stats</a>
+      <a class="nav-link" href="about.html">About</a>
+    </div>
+  </nav>
+
+  <div class="app">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="tabs">
+        <button class="tab on"  id="t-map"     onclick="switchTab('p-map',this)"><span class="tab-ic">🗺️</span>Map</button>
+        <button class="tab"     id="t-zones"   onclick="switchTab('p-zones',this)"><span class="tab-ic">🌿</span>Zones</button>
+        <button class="tab"     id="t-dash"    onclick="switchTab('p-dash',this)"><span class="tab-ic">📊</span>Stats</button>
+        <button class="tab"     id="t-survey"  onclick="switchTab('p-survey',this)"><span class="tab-ic">📋</span>Survey</button>
+        <button class="tab"     id="t-plant"   onclick="switchTab('p-plant',this)"><span class="tab-ic">🌱</span>Plant</button>
+        <button class="tab"     id="t-inc"     onclick="switchTab('p-inc',this)"><span class="tab-ic">⚠️</span>Report</button>
+      </div>
+
+      <!-- ═══ MAP LAYERS ═══ -->
+      <div class="panel on" id="p-map">
+        <div class="ph"><div class="pt">Layers</div><div class="ps">Bizerte · Sentinel-2 2024</div></div>
+        <div class="sec-title">Priority Zones</div>
+        <div class="layer-row"><div class="ldot" style="background:#d93025"></div><span class="lname">Very High Priority</span><button class="ltoggle on" onclick="toggleLayer('very_high_priority',this)"></button></div>
+        <div class="layer-row"><div class="ldot" style="background:#f29900"></div><span class="lname">High Priority</span><button class="ltoggle on" onclick="toggleLayer('high_priority',this)"></button></div>
+        <div class="layer-row"><div class="ldot" style="background:#fbbc04"></div><span class="lname">All Priority Zones</span><button class="ltoggle" onclick="toggleLayer('priority_zones',this)"></button></div>
+        <div class="div"></div>
+        <div class="sec-title">Vegetation & Land</div>
+        <div class="layer-row"><div class="ldot" style="background:#1e8449"></div><span class="lname">Tree Cover</span><button class="ltoggle on" onclick="toggleLayer('tree_cover',this)"></button></div>
+        <div class="layer-row"><div class="ldot" style="background:#78909c"></div><span class="lname">Candidate Land</span><button class="ltoggle" onclick="toggleLayer('candidate_land',this)"></button></div>
+        <div class="div"></div>
+        <div class="sec-title">Study Area</div>
+        <div class="layer-row"><div class="ldot" style="background:#1a73e8;border-radius:50%"></div><span class="lname">Bizerte Boundary</span><button class="ltoggle on" onclick="toggleLayer('bizerte_boundary',this)"></button></div>
+        <div class="div"></div>
+        <div class="sec-title">Basemap</div>
+        <div class="chip-row">
+          <button class="chip on" id="bm-osm"       onclick="setBasemap('osm',this)">Street</button>
+          <button class="chip"    id="bm-satellite"  onclick="setBasemap('satellite',this)">Satellite</button>
+          <button class="chip"    id="bm-topo"       onclick="setBasemap('topo',this)">Topo</button>
+        </div>
+      </div>
+
+      <!-- ═══ ZONES DASHBOARD ═══ -->
+      <div class="panel" id="p-zones">
+        <div class="ph"><div class="pt">Planting Zones</div><div class="ps">Select a zone to see details & log planting</div></div>
+        <div class="filter-bar">
+          <button class="chip on" onclick="filterZones('all',this)">All</button>
+          <button class="chip" onclick="filterZones('very_high',this)">🔴 Very High</button>
+          <button class="chip" onclick="filterZones('high',this)">🟠 High</button>
+          <button class="chip" onclick="filterZones('moderate',this)">🟡 Moderate</button>
+        </div>
+        <div id="zone-list"></div>
+      </div>
+
+      <!-- ═══ STATS PANEL ═══ -->
+      <div class="panel" id="p-dash">
+        <div class="ph"><div class="pt">Bizerte Overview</div><div class="ps">Sentinel-2 2024 · GEE V4</div></div>
+        <div class="kgrid">
+          <div class="kcard"><div class="kval">383k</div><div class="klbl">ha mapped</div></div>
+          <div class="kcard"><div class="kval">14.2k</div><div class="klbl">ha deforested</div></div>
+          <div class="kcard"><div class="kval">84</div><div class="klbl">priority zones</div></div>
+          <div class="kcard"><div class="kval" id="total-planted">0</div><div class="klbl">trees planted</div></div>
+        </div>
+        <div class="div"></div>
+        <div class="sec-title" style="padding-top:10px">Priority Breakdown</div>
+        <div class="pbar"><div class="pbar-hd"><span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#d93025;display:inline-block"></span>Very High</span><span class="pbar-ct">12 zones</span></div><div class="pbar-bg"><div class="pbar-fill" style="width:15%;background:#d93025"></div></div></div>
+        <div class="pbar"><div class="pbar-hd"><span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#f29900;display:inline-block"></span>High</span><span class="pbar-ct">28 zones</span></div><div class="pbar-bg"><div class="pbar-fill" style="width:35%;background:#f29900"></div></div></div>
+        <div class="pbar"><div class="pbar-hd"><span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#fbbc04;display:inline-block"></span>Moderate</span><span class="pbar-ct">24 zones</span></div><div class="pbar-bg"><div class="pbar-fill" style="width:30%;background:#fbbc04"></div></div></div>
+        <div class="pbar"><div class="pbar-hd"><span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#1e8449;display:inline-block"></span>Low</span><span class="pbar-ct">20 zones</span></div><div class="pbar-bg"><div class="pbar-fill" style="width:20%;background:#1e8449"></div></div></div>
+        <div class="div"></div>
+        <div class="sec-title" style="padding-top:10px">Recent Activity</div>
+        <div id="activity-list"><div class="rec-item"><div class="rec-ic" style="background:#e6f4ea">🌳</div><div class="rec-body"><div class="rec-title">No activity yet</div><div class="rec-meta">Submit a survey, planting or report to see activity</div></div></div></div>
+        <div style="padding:12px 16px"><button class="btn btn-s" style="width:100%" onclick="exportCSV()">📄 Export CSV</button></div>
+      </div>
+
+      <!-- ═══ SURVEY ═══ -->
+      <div class="panel" id="p-survey">
+        <div class="ph"><div class="pt">Field Survey</div><div class="ps">Draw a polygon on the map to mark the zone</div></div>
+        <div class="fbody">
+          <div class="fg">
+            <label class="fl">Zone Name</label>
+            <input class="fi" id="sv-zone" type="text" placeholder="e.g. Bizerte North — Sector A" />
+          </div>
+          <div class="fg">
+            <label class="fl">Health Status</label>
+            <select class="fsel" id="sv-status">
+              <option value="Healthy">🟢 Healthy</option>
+              <option value="Degraded">🟡 Degraded</option>
+              <option value="Replanted">🔵 Replanted</option>
+              <option value="Blocked">🔴 Blocked</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">Field Notes</label>
+            <textarea class="fta" id="sv-notes" placeholder="Describe vegetation cover, accessibility, soil type..."></textarea>
+          </div>
+          <div class="fg">
+            <label class="fl">Draw Zone on Map</label>
+            <div class="draw-box" id="draw-box">
+              <div class="db-title" id="draw-title">✏️ Click to start drawing</div>
+              <div class="db-sub" id="draw-sub">Enable drawing mode then click on the map</div>
+              <div class="db-actions">
+                <button class="btn btn-s" id="draw-start-btn" onclick="startDrawing()">Start Drawing</button>
+                <button class="btn btn-s" id="draw-undo-btn" onclick="undoPoint()" disabled>↩ Undo</button>
+                <button class="btn btn-s" id="draw-clear-btn" onclick="clearDrawing()" disabled>🗑 Clear</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-p" onclick="submitSurvey()">☁️ Submit Survey</button>
+        </div>
+      </div>
+
+      <!-- ═══ PLANTING ═══ -->
+      <div class="panel" id="p-plant">
+        <div class="ph"><div class="pt">Log Planting</div><div class="ps">Record trees you planted in the field</div></div>
+        <div class="fbody">
+          <div class="fg">
+            <label class="fl">GPS Location</label>
+            <div class="gps-box" id="gps-box" onclick="captureGPS()">
+              <span style="font-size:20px">📍</span>
+              <div>
+                <div class="gps-main" id="gps-main">Tap to capture location</div>
+                <div class="gps-sub" id="gps-sub">Uses your browser geolocation</div>
+              </div>
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">Tree Species</label>
+            <input class="fi" id="pl-species" type="text" placeholder="e.g. Pinus halepensis" />
+            <div class="chip-row" style="padding:8px 0 0">
+              <button class="chip" onclick="setSpec(this,'Pinus halepensis')">Pinus halepensis</button>
+              <button class="chip" onclick="setSpec(this,'Quercus suber')">Quercus suber</button>
+              <button class="chip" onclick="setSpec(this,'Ceratonia siliqua')">Ceratonia siliqua</button>
+              <button class="chip" onclick="setSpec(this,'Eucalyptus globulus')">Eucalyptus</button>
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">Number of Trees</label>
+            <input class="fi" id="pl-count" type="number" min="1" value="1" />
+          </div>
+          <div class="fg">
+            <label class="fl">Notes (optional)</label>
+            <textarea class="fta" id="pl-notes" placeholder="Spacing, soil condition, irrigation..." style="min-height:60px"></textarea>
+          </div>
+          <button class="btn btn-p" onclick="submitPlanting()">📍 Log on Map</button>
+        </div>
+      </div>
+
+      <!-- ═══ INCIDENT ═══ -->
+      <div class="panel" id="p-inc">
+        <div class="ph"><div class="pt">Report Incident</div><div class="ps">Alert the nearest field team immediately</div></div>
+        <div class="fbody">
+          <div class="alert rd"><span>⚠️</span><span>Your location will be attached automatically and the field team notified.</span></div>
+          <div class="fg">
+            <label class="fl">Category</label>
+            <div class="chip-row" id="inc-chips" style="padding:0 0 0">
+              <button class="chip on" onclick="pickIncCat(this)">🔥 Fire</button>
+              <button class="chip" onclick="pickIncCat(this)">🪓 Illegal Cutting</button>
+              <button class="chip" onclick="pickIncCat(this)">🌊 Erosion</button>
+              <button class="chip" onclick="pickIncCat(this)">🗑️ Waste Dumping</button>
+              <button class="chip" onclick="pickIncCat(this)">📋 Other</button>
+            </div>
+          </div>
+          <div class="fg" style="margin-top:12px">
+            <label class="fl">Description</label>
+            <textarea class="fta" id="inc-desc" placeholder="What did you observe? Describe location and extent of damage..."></textarea>
+          </div>
+          <div class="fg">
+            <label class="fl">Severity</label>
+            <select class="fsel" id="inc-sev">
+              <option value="Low">Low — Minor, can wait</option>
+              <option value="Medium" selected>Medium — Needs attention</option>
+              <option value="High">High — Urgent response</option>
+              <option value="Critical">Critical — Major emergency</option>
+            </select>
+          </div>
+          <button class="btn btn-d" onclick="submitIncident()">🚨 Submit Report</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div class="map-wrap">
+      <div id="map"></div>
+      <!-- DRAW OVERLAY: sits on top of map, captures all clicks when drawing -->
+      <div id="draw-overlay" onclick="overlayClick(event)"></div>
+
+      <div class="map-ctrl">
+        <button class="mc" onclick="map.zoomIn()" title="Zoom in">＋</button>
+        <button class="mc" onclick="map.zoomOut()" title="Zoom out">－</button>
+        <button class="mc" onclick="locateMe()" title="My location" style="font-size:13px">📍</button>
+      </div>
+
+      <div class="map-legend">
+        <h4>Legend</h4>
+        <div class="lg-row"><div class="lg-sw" style="background:#d93025"></div> Very High Priority</div>
+        <div class="lg-row"><div class="lg-sw" style="background:#f29900"></div> High Priority</div>
+        <div class="lg-row"><div class="lg-sw" style="background:#1e8449"></div> Tree Cover</div>
+        <div class="lg-row"><div class="lg-sw" style="background:#1a73e8;border-radius:0"></div> Boundary</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// MAP SETUP
+// ══════════════════════════════════════════════════════
+const BIZERTE = [37.2746, 9.8739];
+const basemaps = {
+  osm:       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OSM', maxZoom:19 }),
+  satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution:'© Esri', maxZoom:19 }),
+  topo:      L.tileLayer('https://tile.opentopomap.org/{z}/{x}/{y}.png', { attribution:'© OpenTopoMap', maxZoom:17 }),
+};
+
+const map = L.map('map', { center: BIZERTE, zoom: 10, zoomControl: false, attributionControl: true });
+basemaps.osm.addTo(map);
+
+// ══════════════════════════════════════════════════════
+// LAYER CONFIG
+// ══════════════════════════════════════════════════════
+const LAYERS = {
+  very_high_priority: { file:'assets/geojson/very_high_priority.geojson', on:true,  style:{ color:'#b91c1c', fillColor:'#d93025', fillOpacity:0.6,  weight:1.5 } },
+  high_priority:      { file:'assets/geojson/high_priority.geojson',      on:true,  style:{ color:'#c2410c', fillColor:'#f29900', fillOpacity:0.5,  weight:1   } },
+  priority_zones:     { file:'assets/geojson/priority_zones.geojson',     on:false, style:(f)=>{ const c={2:'#fbbc04',3:'#f29900',4:'#d93025',5:'#b91c1c'}[f?.properties?.priority_level||2]||'#fbbc04'; return {color:c,fillColor:c,fillOpacity:0.4,weight:0.8}; } },
+  tree_cover:         { file:'assets/geojson/tree_cover.geojson',         on:true,  style:{ color:'#15803d', fillColor:'#1e8449', fillOpacity:0.5,  weight:0.8 } },
+  candidate_land:     { file:'assets/geojson/candidate_land.geojson',     on:false, style:{ color:'#78909c', fillColor:'#b0bec5', fillOpacity:0.3,  weight:0.5 } },
+  bizerte_boundary:   { file:'assets/geojson/bizerte_boundary.geojson',   on:true,  style:{ color:'#1a73e8', fillColor:'transparent', fillOpacity:0, weight:2, dashArray:'6,4', interactive:false } },
+};
+
+const loadedLayers = {};
+const layerOn = {};
+
+function makePopup(key, props) {
+  const titles = { very_high_priority:'🔴 Very High Priority', high_priority:'🟠 High Priority', priority_zones:'Priority Zone', tree_cover:'🌳 Tree Cover', candidate_land:'⬜ Candidate Land', bizerte_boundary:'📍 Bizerte Boundary' };
+  const ha = props?.area_ha ? (+props.area_ha).toFixed(1)+' ha' : '—';
+  const lv = props?.priority_level ? 'Level '+props.priority_level : '';
+  return `<div class="pop-title">${titles[key]||key}</div>
+    <div class="pop-row"><span>Area</span><span class="pop-val">${ha}</span></div>
+    ${lv?`<div class="pop-row"><span>Priority</span><span class="pop-val">${lv}</span></div>`:''}
+    ${props?.layer?`<div class="pop-row"><span>Class</span><span class="pop-val">${props.layer}</span></div>`:''}`;
+}
+
+async function loadLayer(key) {
+  if (loadedLayers[key]) return;
+  const cfg = LAYERS[key];
+  try {
+    const res = await fetch(cfg.file);
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    const lyr = L.geoJSON(data, {
+      style: typeof cfg.style==='function' ? cfg.style : ()=>cfg.style,
+      onEachFeature: (f, l) => {
+        l.bindPopup(makePopup(key, f.properties||{}));
+        // Forward layer clicks to drawing when in draw mode
+        l.on('click', e => {
+          if (drawingMode) { L.DomEvent.stopPropagation(e); handleDrawClick(e.latlng); }
+        });
+      }
+    });
+    loadedLayers[key] = lyr;
+    if (layerOn[key]) lyr.addTo(map);
+  } catch(e) { toast('⚠️ Layer not loaded: '+key); }
+}
+
+function toggleLayer(key, btn) {
+  layerOn[key] = !layerOn[key];
+  btn.classList.toggle('on', layerOn[key]);
+  if (layerOn[key]) { loadLayer(key).then(()=>{ if(loadedLayers[key]) loadedLayers[key].addTo(map); }); }
+  else if (loadedLayers[key]) map.removeLayer(loadedLayers[key]);
+}
+
+function setBasemap(type, btn) {
+  document.querySelectorAll('[id^="bm-"]').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  Object.values(basemaps).forEach(b=>map.removeLayer(b));
+  basemaps[type].addTo(map);
+}
+
+// Init layers
+Object.entries(LAYERS).forEach(([k,cfg])=>{ layerOn[k]=cfg.on; if(cfg.on) loadLayer(k); });
+
+// Map click (open areas — no layer on top)
+map.on('click', e => { if (drawingMode) handleDrawClick(e.latlng); });
+
+// ══════════════════════════════════════════════════════
+// TABS — robust switching using direct style
+// ══════════════════════════════════════════════════════
+const PANELS = ['p-map','p-zones','p-dash','p-survey','p-plant','p-inc'];
+const TABS   = ['t-map','t-zones','t-dash','t-survey','t-plant','t-inc'];
+
+function switchTab(panelId, btn) {
+  // Hide all panels
+  PANELS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  // Deactivate all tabs
+  TABS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('on');
+  });
+  // Show target panel
+  const panel = document.getElementById(panelId);
+  if (panel) panel.style.display = 'flex';
+  // Activate clicked tab
+  btn.classList.add('on');
+  // Stop drawing if leaving survey tab
+  if (panelId !== 'p-survey') stopDrawing();
+}
+
+// ══════════════════════════════════════════════════════
+// DRAWING — uses an overlay div to catch ALL clicks
+// ══════════════════════════════════════════════════════
+let drawingMode = false;
+let drawPts = [];
+let drawMarkers = [];
+let drawLine = null, drawPoly = null;
+
+function startDrawing() {
+  drawingMode = true;
+  document.getElementById('draw-overlay').classList.add('active');
+  document.getElementById('draw-box').classList.add('active');
+  document.getElementById('draw-title').textContent = '✏️ Drawing active — click on map';
+  document.getElementById('draw-sub').textContent = '0 points • Click the map on the right';
+  document.getElementById('draw-start-btn').textContent = 'Drawing...';
+  document.getElementById('draw-start-btn').disabled = true;
+  toast('✏️ Drawing mode ON — click on the map to add points');
+}
+
+function stopDrawing() {
+  drawingMode = false;
+  document.getElementById('draw-overlay').classList.remove('active');
+  document.getElementById('draw-box').classList.remove('active');
+  document.getElementById('draw-start-btn').textContent = 'Start Drawing';
+  document.getElementById('draw-start-btn').disabled = false;
+}
+
+function overlayClick(e) {
+  // Convert pixel click to lat/lng
+  const rect = document.getElementById('map').getBoundingClientRect();
+  const pt = L.point(e.clientX - rect.left, e.clientY - rect.top);
+  const latlng = map.containerPointToLatLng(pt);
+  handleDrawClick(latlng);
+}
+
+function handleDrawClick(latlng) {
+  drawPts.push([latlng.lat, latlng.lng]);
+  const m = L.circleMarker(latlng, { radius:5, color:'#1a73e8', fillColor:'#fff', fillOpacity:1, weight:2 }).addTo(map);
+  drawMarkers.push(m);
+  // Redraw line
+  if (drawLine) map.removeLayer(drawLine);
+  drawLine = L.polyline(drawPts, { color:'#1a73e8', weight:2, dashArray:'5,5' }).addTo(map);
+  // Draw polygon if >= 3 points
+  if (drawPts.length >= 3) {
+    if (drawPoly) map.removeLayer(drawPoly);
+    drawPoly = L.polygon(drawPts, { color:'#1a73e8', fillColor:'#1a73e8', fillOpacity:0.15, weight:2 }).addTo(map);
+  }
+  document.getElementById('draw-undo-btn').disabled = false;
+  document.getElementById('draw-clear-btn').disabled = false;
+  document.getElementById('draw-sub').textContent = `${drawPts.length} point${drawPts.length>1?'s':''} • ${drawPts.length>=3?'Ready to submit':'Need '+(3-drawPts.length)+' more'}`;
+}
+
+function undoPoint() {
+  if (!drawPts.length) return;
+  drawPts.pop();
+  const m = drawMarkers.pop(); if (m) map.removeLayer(m);
+  if (drawLine) { map.removeLayer(drawLine); drawLine=null; }
+  if (drawPoly) { map.removeLayer(drawPoly); drawPoly=null; }
+  if (drawPts.length>=1) drawLine = L.polyline(drawPts,{color:'#1a73e8',weight:2,dashArray:'5,5'}).addTo(map);
+  if (drawPts.length>=3) drawPoly = L.polygon(drawPts,{color:'#1a73e8',fillColor:'#1a73e8',fillOpacity:0.15,weight:2}).addTo(map);
+  document.getElementById('draw-sub').textContent = `${drawPts.length} points`;
+  if (!drawPts.length) { document.getElementById('draw-undo-btn').disabled=true; document.getElementById('draw-clear-btn').disabled=true; }
+}
+
+function clearDrawing() {
+  drawPts=[];
+  drawMarkers.forEach(m=>map.removeLayer(m)); drawMarkers=[];
+  if (drawLine){map.removeLayer(drawLine);drawLine=null;}
+  if (drawPoly){map.removeLayer(drawPoly);drawPoly=null;}
+  document.getElementById('draw-undo-btn').disabled=true;
+  document.getElementById('draw-clear-btn').disabled=true;
+  document.getElementById('draw-sub').textContent='0 points • Click the map on the right';
+}
+
+// ══════════════════════════════════════════════════════
+// DATA STORE (localStorage)
+// ══════════════════════════════════════════════════════
+function loadData(key) { try { return JSON.parse(localStorage.getItem('bf_'+key)||'[]'); } catch{return[];} }
+function saveData(key,arr) { localStorage.setItem('bf_'+key, JSON.stringify(arr)); }
+
+let surveys   = loadData('surveys');
+let plantings = loadData('plantings');
+let incidents = loadData('incidents');
+
+function addActivity(icon, bg, title, meta, badge, badgeClass) {
+  const list = document.getElementById('activity-list');
+  if (list.querySelector('.rec-item .rec-meta')?.textContent?.includes('Submit a survey')) list.innerHTML='';
+  const d = document.createElement('div');
+  d.className='rec-item';
+  d.innerHTML=`<div class="rec-ic" style="background:${bg}">${icon}</div><div class="rec-body"><div class="rec-title">${title}</div><div class="rec-meta">${meta}</div></div><span class="badge ${badgeClass}">${badge}</span>`;
+  list.prepend(d);
+}
+
+function updatePlantedCount() {
+  const total = plantings.reduce((s,r)=>s+(r.count||0),0);
+  document.getElementById('total-planted').textContent = total>=1000?(total/1000).toFixed(1)+'k':total;
+}
+updatePlantedCount();
+
+// Restore existing planting markers
+function timeAgo(ts) {
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60) return 'just now';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+
+function getTreeIcon(species) { let e='🌱'; const s=(species||'').toLowerCase(); if(s.includes('pinus')) e='🌲'; else if(s.includes('quercus')) e='🌳'; else if(s.includes('ceratonia')) e='🌿'; else if(s.includes('eucalyptus')) e='🍃'; return L.divIcon({html:`<div style="font-size:24px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));text-align:center">${e}</div>`,className:'',iconSize:[28,28],iconAnchor:[14,14]}); }
+function getIncIcon(cat) { let e='⚠️'; const s=(cat||'').toLowerCase(); if(s.includes('fire')) e='🔥'; else if(s.includes('cutting')) e='🪓'; else if(s.includes('erosion')) e='🌊'; else if(s.includes('waste')) e='🗑️'; return L.divIcon({html:`<div style="font-size:24px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));text-align:center">${e}</div>`,className:'',iconSize:[28,28],iconAnchor:[14,14]}); }
+function getSurveyIcon(status) { let e='📋'; if(status==='Healthy') e='🟢'; else if(status==='Degraded') e='🟡'; else if(status==='Blocked') e='🔴'; else if(status==='Replanted') e='🔵'; return L.divIcon({html:`<div style="font-size:20px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));text-align:center">${e}</div>`,className:'',iconSize:[24,24],iconAnchor:[12,12]}); }
+
+plantings.forEach(r=>{
+  if(r.lat&&r.lng) L.marker([r.lat,r.lng],{icon:getTreeIcon(r.species)}).addTo(map).bindPopup(`<div class="pop-title">🌱 ${r.count}× ${r.species}</div><div class="pop-row"><span>When</span><span class="pop-val">${timeAgo(r.ts)}</span></div>${r.notes?`<div style="margin-top:5px;font-size:12px;color:#5f6368">${r.notes}</div>`:''}`);
+});
+
+incidents.forEach(r=>{
+  if(r.lat&&r.lng){
+    L.marker([r.lat,r.lng],{icon:getIncIcon(r.category)}).addTo(map).bindPopup(`<div class="pop-title">⚠️ ${r.category}</div><div class="pop-row"><span>Severity</span><span class="pop-val">${r.severity}</span></div><div style="margin-top:5px;font-size:12px;color:#5f6368">${r.desc}</div>`);
+  }
+});
+
+surveys.forEach(r=>{
+  if(r.pts && r.pts.length>=3){
+    const colors = {Healthy:'#1e8449',Degraded:'#f29900',Replanted:'#1a73e8',Blocked:'#d93025'};
+    L.polygon(r.pts, { color:colors[r.status]||'#1a73e8', fillColor:colors[r.status]||'#1a73e8', fillOpacity:0.2, weight:2 }).addTo(map).bindPopup(`<div class="pop-title">📋 Survey: ${r.zone}</div><div class="pop-row"><span>Status</span><span class="pop-val">${r.status}</span></div>${r.notes?`<div style="margin-top:5px;font-size:12px;color:#5f6368">${r.notes}</div>`:''}`);
+    L.marker(r.pts[0], {icon:getSurveyIcon(r.status)}).addTo(map);
+  }
+});
+
+// ══════════════════════════════════════════════════════
+// SURVEY SUBMIT
+// ══════════════════════════════════════════════════════
+function submitSurvey() {
+  const zone = document.getElementById('sv-zone').value.trim();
+  const status = document.getElementById('sv-status').value;
+  const notes = document.getElementById('sv-notes').value;
+  if (!zone) { toast('Enter a zone name'); return; }
+  if (drawPts.length < 3) { toast('Draw at least 3 points on the map first'); return; }
+  const rec = { id:Date.now(), zone, status, notes, pts:drawPts.slice(), ts:Date.now() };
+  surveys.push(rec); saveData('surveys', surveys);
+  // Keep the polygon on map with a label and an icon
+  const colors = {Healthy:'#1e8449',Degraded:'#f29900',Replanted:'#1a73e8',Blocked:'#d93025'};
+  L.polygon(drawPts, { color:colors[status]||'#1a73e8', fillColor:colors[status]||'#1a73e8', fillOpacity:0.2, weight:2 })
+    .addTo(map).bindPopup(`<div class="pop-title">📋 Survey: ${zone}</div><div class="pop-row"><span>Status</span><span class="pop-val">${status}</span></div>${notes?`<div style="margin-top:5px;font-size:12px;color:#5f6368">${notes}</div>`:''}`);
+  L.marker(drawPts[0], {icon:getSurveyIcon(status)}).addTo(map);
+  addActivity('📋','#e8f0fe',`Survey: ${zone}`,timeAgo(Date.now()),status,{Healthy:'bg',Degraded:'bo',Replanted:'bb',Blocked:'br'}[status]||'bb');
+  clearDrawing(); stopDrawing();
+  document.getElementById('sv-zone').value='';
+  document.getElementById('sv-notes').value='';
+  toast(`✓ Survey for "${zone}" submitted`);
+}
+
+// ══════════════════════════════════════════════════════
+// PLANTING
+// ══════════════════════════════════════════════════════
+let capturedPos = null;
+
+function captureGPS() {
+  document.getElementById('gps-main').textContent = 'Getting location...';
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(p=>{
+      capturedPos={lat:p.coords.latitude,lng:p.coords.longitude};
+      document.getElementById('gps-main').textContent=`${p.coords.latitude.toFixed(5)}, ${p.coords.longitude.toFixed(5)}`;
+      document.getElementById('gps-sub').textContent=`Accuracy ±${p.coords.accuracy.toFixed(0)}m`;
+      document.getElementById('gps-box').style.borderColor='var(--green)';
+      toast('📍 Location captured');
+    }, ()=>{
+      // Demo fallback
+      capturedPos={lat:37.2746+(Math.random()-.5)*.15,lng:9.8739+(Math.random()-.5)*.15};
+      document.getElementById('gps-main').textContent=`${capturedPos.lat.toFixed(5)}, ${capturedPos.lng.toFixed(5)}`;
+      document.getElementById('gps-sub').textContent='Demo location (geolocation denied)';
+      document.getElementById('gps-box').style.borderColor='var(--orange)';
+      toast('📍 Demo location set');
+    });
+  }
+}
+
+function setSpec(btn, name) {
+  document.querySelectorAll('#p-plant .chip').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('pl-species').value=name;
+}
+
+function submitPlanting() {
+  const species=document.getElementById('pl-species').value.trim();
+  const count=parseInt(document.getElementById('pl-count').value)||1;
+  if (!species) { toast('Enter tree species'); return; }
+  if (!capturedPos) { toast('Capture GPS location first'); return; }
+  const rec={id:Date.now(),species,count,lat:capturedPos.lat,lng:capturedPos.lng,notes:document.getElementById('pl-notes').value,ts:Date.now()};
+  plantings.push(rec); saveData('plantings',plantings);
+  L.marker([rec.lat,rec.lng],{icon:getTreeIcon(species)})
+    .addTo(map).bindPopup(`<div class="pop-title">🌱 ${count}× ${species}</div><div class="pop-row"><span>When</span><span class="pop-val">just now</span></div>${rec.notes?`<div style="margin-top:5px;font-size:12px;color:#5f6368">${rec.notes}</div>`:''}`);
+  map.setView([rec.lat,rec.lng],14);
+  addActivity('🌳','#e6f4ea',`${count}× ${species} planted`,'just now','Planted','bg');
+  updatePlantedCount();
+  document.getElementById('pl-species').value='';
+  document.getElementById('pl-count').value='1';
+  document.getElementById('pl-notes').value='';
+  document.querySelectorAll('#p-plant .chip').forEach(c=>c.classList.remove('on'));
+  capturedPos=null;
+  document.getElementById('gps-main').textContent='Tap to capture location';
+  document.getElementById('gps-sub').textContent='Uses your browser geolocation';
+  document.getElementById('gps-box').style.borderColor='';
+  toast(`✓ ${count} ${species} logged on map`);
+}
+
+// ══════════════════════════════════════════════════════
+// INCIDENT
+// ══════════════════════════════════════════════════════
+function pickIncCat(btn) {
+  document.querySelectorAll('#inc-chips .chip').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+function submitIncident() {
+  const desc=document.getElementById('inc-desc').value.trim();
+  const cat=(document.querySelector('#inc-chips .chip.on')?.textContent||'').replace(/[^\w ]/g,'').trim();
+  const sev=document.getElementById('inc-sev').value;
+  if (!desc) { toast('Describe the incident first'); return; }
+  // Use real GPS or fallback
+  function doSubmit(lat,lng) {
+    const rec={id:Date.now(),category:cat,severity:sev,desc,lat,lng,ts:Date.now()};
+    incidents.push(rec); saveData('incidents',incidents);
+    L.marker([lat,lng],{icon:getIncIcon(cat)})
+      .addTo(map).bindPopup(`<div class="pop-title">⚠️ ${cat}</div><div class="pop-row"><span>Severity</span><span class="pop-val">${sev}</span></div><div style="margin-top:5px;font-size:12px;color:#5f6368">${desc}</div>`);
+    map.setView([lat,lng],13);
+    addActivity('⚠️','#fce8e6',`${cat} — ${sev}`,`Reported just now`,sev,{Low:'bo',Medium:'bo',High:'br',Critical:'br'}[sev]||'br');
+    document.getElementById('inc-desc').value='';
+    document.getElementById('inc-sev').value='Medium';
+    toast(`🚨 Incident reported — team notified`);
+  }
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(p=>doSubmit(p.coords.latitude,p.coords.longitude), ()=>doSubmit(37.2746+(Math.random()-.5)*.3,9.8739+(Math.random()-.5)*.3));
+  } else { doSubmit(37.2746+(Math.random()-.5)*.3,9.8739+(Math.random()-.5)*.3); }
+}
+
+// ══════════════════════════════════════════════════════
+// ZONES DASHBOARD (built from mock data since GeoJSON is huge)
+// ══════════════════════════════════════════════════════
+const ZONES = [
+  { id:1, name:'Bizerte North — Zone A',    priority:'very_high', level:4, area_ha:45, planted:12, target:100, lat:37.33, lng:9.88 },
+  { id:2, name:'Zarzouna Industrial Edge',  priority:'very_high', level:4, area_ha:28, planted:0,  target:60,  lat:37.30, lng:9.90 },
+  { id:3, name:'Menzel Bourguiba — Est',    priority:'high',      level:3, area_ha:112,planted:30, target:200, lat:37.15, lng:9.80 },
+  { id:4, name:'Cap Negro Corridor',        priority:'high',      level:3, area_ha:64, planted:8,  target:130, lat:37.08, lng:9.72 },
+  { id:5, name:'Ichkeul Buffer Strip',      priority:'high',      level:3, area_ha:89, planted:55, target:180, lat:37.18, lng:9.65 },
+  { id:6, name:'Ghar el Melh South',        priority:'moderate',  level:2, area_ha:155,planted:70, target:300, lat:37.22, lng:10.17},
+  { id:7, name:'Sejnane Reforestation A',   priority:'moderate',  level:2, area_ha:201,planted:120,target:400, lat:37.06, lng:8.95 },
+  { id:8, name:'Mateur Periphery',          priority:'high',      level:3, area_ha:76, planted:0,  target:150, lat:37.04, lng:9.67 },
+  { id:9, name:'Ras Jebel Coast',           priority:'moderate',  level:2, area_ha:43, planted:20, target:90,  lat:37.25, lng:10.09},
+  { id:10,name:'Bizerte South Outskirts',   priority:'very_high', level:4, area_ha:37, planted:5,  target:80,  lat:37.24, lng:9.86 },
+];
+
+const priColors = { very_high:'#d93025', high:'#f29900', moderate:'#fbbc04', low:'#1e8449' };
+const priLabels = { very_high:'Very High', high:'High', moderate:'Moderate', low:'Low' };
+const priBadge  = { very_high:'br', high:'bo', moderate:'bo', low:'bg' };
+
+let zoneFilter = 'all';
+let zoneMarkers = {};
+
+function renderZones(filter) {
+  const list=document.getElementById('zone-list');
+  list.innerHTML='';
+  const filtered = filter==='all' ? ZONES : ZONES.filter(z=>z.priority===filter);
+  filtered.forEach(z=>{
+    const pct=Math.round((z.planted/z.target)*100);
+    const d=document.createElement('div');
+    d.className='zone-item';
+    d.innerHTML=`
+      <div class="zone-hd">
+        <div class="pri-dot" style="background:${priColors[z.priority]}"></div>
+        <div class="zone-name">${z.name}</div>
+        <span class="badge ${priBadge[z.priority]}">${priLabels[z.priority]}</span>
+      </div>
+      <div class="zone-body">
+        <span>📐 ${z.area_ha} ha</span>
+        <span>🌱 ${z.planted}/${z.target} trees</span>
+        <span>${pct}%</span>
+      </div>
+      <div class="zone-progress"><div class="zone-prog-fill" style="width:${pct}%"></div></div>`;
+    d.onclick=()=>focusZone(z);
+    list.appendChild(d);
+  });
+}
+
+function filterZones(type, btn) {
+  document.querySelectorAll('#p-zones .filter-bar .chip').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+  zoneFilter=type;
+  renderZones(type);
+}
+
+function focusZone(z) {
+  map.setView([z.lat,z.lng],13);
+  const c=priColors[z.priority];
+  const pct=Math.round((z.planted/z.target)*100);
+  // Place a marker for this zone if not already there
+  if (!zoneMarkers[z.id]) {
+    zoneMarkers[z.id]=L.circleMarker([z.lat,z.lng],{radius:14,color:c,fillColor:c,fillOpacity:.3,weight:2})
+      .addTo(map)
+      .bindPopup(`<div class="pop-title">${z.name}</div>
+        <div class="pop-row"><span>Priority</span><span class="pop-val">${priLabels[z.priority]}</span></div>
+        <div class="pop-row"><span>Area</span><span class="pop-val">${z.area_ha} ha</span></div>
+        <div class="pop-row"><span>Trees planted</span><span class="pop-val">${z.planted} / ${z.target}</span></div>
+        <div class="pop-row"><span>Progress</span><span class="pop-val">${pct}%</span></div>
+        <div style="margin-top:8px"><button onclick="quickPlant(${z.id})" style="background:var(--green);color:white;border:none;border-radius:5px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:Roboto,sans-serif">+ Log Planting Here</button></div>`);
+  }
+  zoneMarkers[z.id].openPopup();
+}
+
+function quickPlant(zoneId) {
+  const z=ZONES.find(z=>z.id===zoneId);
+  if(!z) return;
+  // Switch to planting tab and prefill GPS
+  capturedPos={lat:z.lat,lng:z.lng};
+  document.getElementById('gps-main').textContent=`${z.lat.toFixed(5)}, ${z.lng.toFixed(5)}`;
+  document.getElementById('gps-sub').textContent=`Zone: ${z.name}`;
+  document.getElementById('gps-box').style.borderColor='var(--green)';
+  document.getElementById('t-plant').click();
+  map.closePopup();
+  toast(`📍 Location set to ${z.name}`);
+}
+
+renderZones('all');
+
+// ══════════════════════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════════════════════
+function locateMe() {
+  if (!navigator.geolocation) { toast('Geolocation not supported'); return; }
+  navigator.geolocation.getCurrentPosition(p=>{
+    const latlng=[p.coords.latitude,p.coords.longitude];
+    map.setView(latlng,15);
+    L.circleMarker(latlng,{radius:8,color:'#1a73e8',fillColor:'#1a73e8',fillOpacity:.9,weight:2}).addTo(map).bindPopup('You are here').openPopup();
+  },()=>toast('Location access denied'));
+}
+
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+function exportCSV() {
+  const rows=[['Type','Details','Date']];
+  surveys.forEach(r=>rows.push(['Survey',`${r.zone} — ${r.status}`,new Date(r.ts).toLocaleDateString()]));
+  plantings.forEach(r=>rows.push(['Planting',`${r.count}x ${r.species}`,new Date(r.ts).toLocaleDateString()]));
+  incidents.forEach(r=>rows.push(['Incident',`${r.category} — ${r.severity}`,new Date(r.ts).toLocaleDateString()]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='bizforest_export.csv'; a.click();
+}
+</script>
+</body>
+</html>

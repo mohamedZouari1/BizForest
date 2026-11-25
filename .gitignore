@@ -1,0 +1,34 @@
+# Only the mobile app and the website are tracked in this repository.
+/*
+!/.gitignore
+!/README.md
+!/bizerte_reforest_agent/
+!/bizforest_website/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+.idea/
+*.iml
+local.properties
+
+# Backups / editor files
+*.bak
+.DS_Store
+Thumbs.db
+
+# Unused legacy GeoJSON (superseded by bizerte_* layers in the app)
+/bizerte_reforest_agent/assets/geojson/candidate_land.geojson
+/bizerte_reforest_agent/assets/geojson/high_priority.geojson
+/bizerte_reforest_agent/assets/geojson/priority_zones.geojson
+/bizerte_reforest_agent/assets/geojson/tree_cover.geojson
+/bizerte_reforest_agent/assets/geojson/very_high_priority.geojson
+
+# GeoJSON not used by the website (map.html loads only the legacy layers + boundary)
+/bizforest_website/assets/geojson/bizerte_deforested_areas_hansen.geojson
+/bizforest_website/assets/geojson/bizerte_priority_zones.geojson
+/bizforest_website/assets/geojson/bizerte_reforestation_candidates.geojson
+/bizforest_website/assets/geojson/bizerte_tree_cover.geojson
+/bizforest_website/assets/geojson/bizerte_very_high_priority.geojson

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BizForest — Reforestation Intelligence for Bizerte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/nav.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #1e8449;
+      --green-dark: #145a32;
+      --green-light: #e6f4ea;
+      --accent: #1a73e8;
+      --accent-light: #e8f0fe;
+      --text: #202124;
+      --text2: #5f6368;
+      --border: #e0e0e0;
+      --bg: #f8f9fa;
+      --surface: #ffffff;
+      --red: #d93025;
+      --orange: #f29900;
+    }
+    body { font-family: 'Roboto', sans-serif; color: var(--text); background: var(--surface); }
+    a { text-decoration: none; color: inherit; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      height: 64px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 40px; gap: 32px;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'Google Sans', sans-serif; font-size: 20px; font-weight: 700; color: var(--green);
+    }
+    .nav-links { display: flex; gap: 4px; margin-left: 24px; }
+    .nav-link {
+      padding: 8px 14px; border-radius: 20px;
+      font-size: 14px; font-weight: 500; color: var(--text2);
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-link:hover { background: var(--bg); color: var(--text); }
+    .nav-link.active { background: var(--green-light); color: var(--green); }
+    .nav-cta {
+      margin-left: auto; padding: 8px 20px; border-radius: 6px;
+      background: var(--green); color: white;
+      font-size: 14px; font-weight: 500;
+      transition: background 0.15s;
+    }
+    .nav-cta:hover { background: var(--green-dark); }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 80px 40px 60px;
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--green-light); color: var(--green);
+      font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    h1 {
+      font-family: 'Google Sans', sans-serif; font-size: 44px; font-weight: 700;
+      color: var(--text); line-height: 1.2; margin-bottom: 16px;
+    }
+    h1 span { color: var(--green); }
+    .hero-desc { font-size: 17px; color: var(--text2); line-height: 1.6; margin-bottom: 32px; }
+    .hero-actions { display: flex; gap: 12px; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 6px;
+      background: var(--green); color: white;
+      font-size: 15px; font-weight: 500;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: var(--green-dark); }
+    .btn-outlined {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 6px;
+      border: 1px solid var(--border); color: var(--text2);
+      font-size: 15px; font-weight: 500;
+      transition: background 0.15s;
+    }
+    .btn-outlined:hover { background: var(--bg); }
+
+    /* Hero map preview */
+    .hero-map-preview {
+      background: var(--bg); border-radius: 12px; border: 1px solid var(--border);
+      overflow: hidden; aspect-ratio: 16/11;
+      position: relative; box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    }
+    .preview-img {
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #e6f4ea 0%, #c8e6c9 40%, #a5d6a7 60%, #81c784 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 80px; color: rgba(30,132,73,0.15);
+    }
+    .preview-overlay {
+      position: absolute; inset: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="rgba(30,132,73,0.05)" width="100" height="100"/><circle cx="30" cy="40" r="15" fill="rgba(211,47,47,0.4)"/><circle cx="70" cy="60" r="10" fill="rgba(242,153,0,0.4)"/><circle cx="50" cy="30" r="20" fill="rgba(30,132,73,0.3)"/></svg>') center/cover;
+    }
+    .preview-badge {
+      position: absolute; top: 12px; left: 12px;
+      background: rgba(255,255,255,0.9); backdrop-filter: blur(4px);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 8px 12px; font-size: 12px; font-weight: 500; color: var(--text);
+      display: flex; gap: 6px; align-items: center;
+    }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .stats-bar-inner {
+      max-width: 1100px; margin: 0 auto; padding: 32px 40px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    }
+    .stat-item {
+      text-align: center; padding: 0 24px;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-val { font-family: 'Google Sans', sans-serif; font-size: 32px; font-weight: 700; color: var(--text); }
+    .stat-lbl { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+    /* ── HOW IT WORKS ── */
+    .section { padding: 72px 40px; max-width: 1100px; margin: 0 auto; }
+    .section-tag {
+      font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--green); margin-bottom: 12px;
+    }
+    h2 { font-family: 'Google Sans', sans-serif; font-size: 32px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+    .section-desc { font-size: 16px; color: var(--text2); max-width: 560px; line-height: 1.6; margin-bottom: 48px; }
+
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .step { position: relative; }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--green); color: white;
+      font-family: 'Google Sans', sans-serif; font-size: 16px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+    }
+    .step-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+    .step-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+    .step-connector {
+      position: absolute; top: 18px; left: 36px; right: -12px;
+      height: 1px; background: var(--border);
+    }
+    .step:last-child .step-connector { display: none; }
+
+    /* ── FEATURES ── */
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .feature-card {
+      border: 1px solid var(--border); border-radius: 10px; padding: 24px;
+      background: var(--surface); transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .feature-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-color: var(--green); }
+    .feature-icon { font-size: 28px; margin-bottom: 14px; }
+    .feature-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+    .feature-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+    .feature-roles { margin-top: 12px; display: flex; gap: 4px; flex-wrap: wrap; }
+    .role-chip {
+      font-size: 11px; padding: 2px 8px; border-radius: 10px;
+      background: var(--bg); color: var(--text2); border: 1px solid var(--border);
+    }
+
+    /* ── WHO SECTION ── */
+    .who-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .who-card {
+      border-radius: 10px; padding: 24px; text-align: center;
+      border: 1px solid var(--border); background: var(--surface);
+    }
+    .who-icon { font-size: 32px; margin-bottom: 12px; }
+    .who-role { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+    .who-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+    /* ── DATA SECTION ── */
+    .data-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+    .data-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 20px;
+      border: 1px solid var(--border); background: var(--bg);
+      font-size: 13px; color: var(--text2);
+    }
+    .data-chip span { font-size: 16px; }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      background: var(--green-dark); color: white;
+      padding: 72px 40px; text-align: center;
+    }
+    .cta-section h2 { color: white; font-size: 36px; margin-bottom: 12px; }
+    .cta-section p { font-size: 16px; opacity: 0.75; max-width: 480px; margin: 0 auto 32px; line-height: 1.6; }
+    .btn-white {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 6px;
+      background: white; color: var(--green-dark);
+      font-size: 15px; font-weight: 500;
+      transition: opacity 0.15s;
+    }
+    .btn-white:hover { opacity: 0.9; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--bg); border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 13px; color: var(--text2);
+    }
+    .footer-logo { font-family: 'Google Sans', sans-serif; font-weight: 700; color: var(--green); font-size: 16px; }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a { color: var(--text2); }
+    .footer-links a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="site-nav">
+    <div class="nav-logo">🌲 BizForest</div>
+    <div class="nav-links">
+      <a class="nav-link active" href="index.html">Home</a>
+      <a class="nav-link" href="map.html">Map Platform</a>
+      <a class="nav-link" href="data.html">Data & Stats</a>
+      <a class="nav-link" href="about.html">About</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div>
+      <div class="hero-badge"><span class="dot"></span> Live · Bizerte Governorate, Tunisia</div>
+      <h1>Reforestation Intelligence for <span>Bizerte</span></h1>
+      <p class="hero-desc">
+        Satellite-powered analysis that identifies where trees were lost, where bare soil is ready for planting,
+        and which zones need urgent action — all available on a map and a mobile app for field teams.
+      </p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="map.html">🗺️ Open Map Platform</a>
+        <a class="btn-outlined" href="data.html">View Data & Stats</a>
+      </div>
+    </div>
+    <div class="hero-map-preview">
+      <img src="assets/tree_hero.png" alt="Hand holding a small tree — BizForest reforestation" style="width:100%;height:100%;object-fit:cover;display:block;" />
+    </div>
+  </div>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="stats-bar-inner">
+      <div class="stat-item">
+        <div class="stat-val">383k</div>
+        <div class="stat-lbl">Hectares mapped</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">10 m</div>
+        <div class="stat-lbl">Resolution (Sentinel-2)</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">14.2k</div>
+        <div class="stat-lbl">Hectares deforested</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">84</div>
+        <div class="stat-lbl">Priority zones identified</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="section">
+    <div class="section-tag">How it works</div>
+    <h2>From Satellite to Decision</h2>
+    <p class="section-desc">The entire pipeline runs from raw satellite imagery to an interactive map your team can act on.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-connector"></div>
+        <div class="step-num">1</div>
+        <div class="step-title">GEE Analysis</div>
+        <div class="step-desc">Sentinel-2, Dynamic World, ESA WorldCover, and Hansen Forest Change fused with a 3-source consensus algorithm.</div>
+      </div>
+      <div class="step">
+        <div class="step-connector"></div>
+        <div class="step-num">2</div>
+        <div class="step-title">Random Forest</div>
+        <div class="step-desc">250-tree Random Forest with 34 spectral & terrain features classifies every pixel into 4 land-cover classes.</div>
+      </div>
+      <div class="step">
+        <div class="step-connector"></div>
+        <div class="step-num">3</div>
+        <div class="step-title">Priority Score</div>
+        <div class="step-desc">Multi-criteria evaluation: thermal stress (35%) · urban density (30%) · tree distance (20%) · bareness (15%).</div>
+      </div>
+      <div class="step">
+        <div class="step-connector"></div>
+        <div class="step-num">4</div>
+        <div class="step-title">Map & App</div>
+        <div class="step-desc">GeoJSON polygons exported and rendered on this web platform and the BizForest Flutter mobile app.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div style="background:var(--bg); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+    <div class="section">
+      <div class="section-tag">Platform Features</div>
+      <h2>Everything in One Place</h2>
+      <p class="section-desc">One platform for field agents, managers, government teams, and volunteers.</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🗺️</div>
+          <div class="feature-title">Interactive Zone Map</div>
+          <div class="feature-desc">Toggle GeoJSON layers on an OSM basemap. Click any zone to see its area, priority score, and land-cover class.</div>
+          <div class="feature-roles"><span class="role-chip">All roles</span></div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <div class="feature-title">Field Survey</div>
+          <div class="feature-desc">Draw a polygon directly on the map to define a survey zone, then submit a health status report with field notes.</div>
+          <div class="feature-roles"><span class="role-chip">Field</span><span class="role-chip">Manager</span></div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌱</div>
+          <div class="feature-title">Planting Log</div>
+          <div class="feature-desc">Record species, tree count, and GPS location for each planting event. Markers appear live on the map.</div>
+          <div class="feature-roles"><span class="role-chip">Field</span><span class="role-chip">Public</span></div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚠️</div>
+          <div class="feature-title">Incident Reporting</div>
+          <div class="feature-desc">Report fires, illegal cutting, erosion, or waste dumping. GPS coordinates attached automatically.</div>
+          <div class="feature-roles"><span class="role-chip">All roles</span></div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <div class="feature-title">Dashboard</div>
+          <div class="feature-desc">Overview KPIs: hectares mapped, deforestation figures, priority zone breakdown, live planting counter.</div>
+          <div class="feature-roles"><span class="role-chip">Manager</span><span class="role-chip">Government</span></div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <div class="feature-title">Mobile App</div>
+          <div class="feature-desc">The BizForest Flutter app mirrors all features, works offline in the field, and syncs to the same data cloud.</div>
+          <div class="feature-roles"><span class="role-chip">Field</span><span class="role-chip">Manager</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHO -->
+  <div class="section">
+    <div class="section-tag">Who Uses It</div>
+    <h2>Built for Every Team</h2>
+    <p class="section-desc">Four role types, one shared mission: restoring Bizerte's forest cover.</p>
+    <div class="who-grid">
+      <div class="who-card">
+        <div class="who-icon">👷</div>
+        <div class="who-role">Field Agents</div>
+        <div class="who-desc">Log GPS surveys, submit planting records, report incidents directly from the field — with or without internet.</div>
+      </div>
+      <div class="who-card">
+        <div class="who-icon">📊</div>
+        <div class="who-role">Managers</div>
+        <div class="who-desc">Monitor zone progress, review field reports, export PDF summaries for internal reviews.</div>
+      </div>
+      <div class="who-card">
+        <div class="who-icon">🏛️</div>
+        <div class="who-role">Government</div>
+        <div class="who-desc">Access regional KPIs, priority zone maps, and exportable data for official reforestation plans.</div>
+      </div>
+      <div class="who-card">
+        <div class="who-icon">🌍</div>
+        <div class="who-role">Public / Volunteers</div>
+        <div class="who-desc">Browse reforestation zones, log planted trees, and report environmental incidents in your area.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA SOURCES -->
+  <div style="background:var(--bg); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+    <div class="section">
+      <div class="section-tag">Data Sources</div>
+      <h2>Built on Trusted Open Data</h2>
+      <div class="data-chips">
+        <div class="data-chip"><span>🛰️</span> Sentinel-2 SR Harmonized · 10m · 2024</div>
+        <div class="data-chip"><span>🌍</span> ESA WorldCover 2021</div>
+        <div class="data-chip"><span>🌳</span> Hansen Global Forest Change 2023</div>
+        <div class="data-chip"><span>🔁</span> Dynamic World V1 (Google)</div>
+        <div class="data-chip"><span>🏔️</span> SRTM Digital Elevation Model</div>
+        <div class="data-chip"><span>🌡️</span> Landsat-9 Land Surface Temperature</div>
+        <div class="data-chip"><span>📍</span> FAO GAUL Administrative Boundaries</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <h2>Start Exploring Bizerte</h2>
+    <p>Open the interactive map platform to visualize priority zones, log field work, or report an incident right now.</p>
+    <a class="btn-white" href="map.html">🗺️ Open Map Platform</a>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">🌲 BizForest</div>
+    <div>Bizerte Governorate Reforestation Program · Sentinel-2 2024 · GEE V4</div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="map.html">Map</a>
+      <a href="data.html">Data</a>
+      <a href="about.html">About</a>
+    </div>
+  </footer>
+
+</body>
+</html>

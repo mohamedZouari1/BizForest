@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About — BizForest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/nav.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #1e8449; --green-dark: #145a32; --green-light: #e6f4ea;
+      --text: #202124; --text2: #5f6368; --border: #e0e0e0;
+      --bg: #f8f9fa; --surface: #ffffff;
+    }
+    body { font-family: 'Roboto', sans-serif; color: var(--text); background: var(--bg); }
+    a { text-decoration: none; color: inherit; }
+
+    nav.site-nav { position: sticky; top: 0; }
+
+    .page { max-width: 900px; margin: 0 auto; padding: 56px 40px; }
+    .page-title { font-family: 'Google Sans', sans-serif; font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .page-sub { font-size: 16px; color: var(--text2); line-height: 1.6; max-width: 600px; margin-bottom: 48px; }
+
+    h2 { font-family: 'Google Sans', sans-serif; font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 12px; margin-top: 40px; }
+    p { font-size: 15px; color: var(--text2); line-height: 1.7; margin-bottom: 16px; }
+
+    .highlight-box {
+      background: var(--green-light); border-radius: 10px; padding: 24px 28px;
+      border-left: 5px solid var(--green); margin: 24px 0;
+    }
+    .highlight-box p { color: var(--green-dark); margin: 0; font-weight: 500; }
+
+    .tech-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0; }
+    .tech-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px;
+    }
+    .tech-icon { font-size: 24px; margin-bottom: 8px; }
+    .tech-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+    .tech-desc { font-size: 12px; color: var(--text2); line-height: 1.4; }
+
+    .file-list { list-style: none; padding: 0; }
+    .file-list li {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    .file-list li:last-child { border-bottom: none; }
+    .file-list code { font-family: 'Courier New', monospace; font-size: 12px; background: var(--bg); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); }
+    .file-list .file-desc { color: var(--text2); font-size: 13px; }
+
+    footer {
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding: 24px 40px; display: flex; align-items: center; justify-content: space-between;
+      font-size: 13px; color: var(--text2); margin-top: 60px;
+    }
+    .footer-logo { font-family: 'Google Sans', sans-serif; font-weight: 700; color: var(--green); font-size: 16px; }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a { color: var(--text2); }
+    .footer-links a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="nav-logo">🌲 BizForest</div>
+    <div class="nav-links">
+      <a class="nav-link" href="index.html">Home</a>
+      <a class="nav-link" href="map.html">Map Platform</a>
+      <a class="nav-link" href="data.html">Data & Stats</a>
+      <a class="nav-link active" href="about.html">About</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-title">About the Project</div>
+    <p class="page-sub">
+      BizForest is a GeoAI platform developed during an internship to support urban reforestation
+      planning in the Bizerte Governorate, Tunisia. It combines satellite data science, machine learning,
+      and mobile technology into a single operational ecosystem.
+    </p>
+
+    <div class="highlight-box">
+      <p>
+        🎯 <strong>Mission:</strong> Identify, prioritize, and help coordinate reforestation actions
+        across Bizerte's 383,000 hectares using Sentinel-2 satellite imagery, a Random Forest classifier,
+        and a multi-criteria priority model — all accessible from a browser or a smartphone.
+      </p>
+    </div>
+
+    <h2>Why Bizerte?</h2>
+    <p>
+      The Bizerte Governorate represents a critical environmental area in northern Tunisia.
+      It combines dense urban zones (city of Bizerte, Zarzouna, Menzel Bourguiba), natural
+      ecosystems (Lake Ichkeul, cork oak forests), and agricultural land under expanding urbanization pressure.
+    </p>
+    <p>
+      Hansen Global Forest Change data shows approximately <strong>14,200 hectares of deforestation
+      since 2000</strong>. The growing urban heat island effect — measurable via Landsat-9 Land Surface
+      Temperature — makes targeted tree planting a public health and ecological priority.
+    </p>
+
+    <h2>The 3 Components</h2>
+
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-icon">🛰️</div>
+        <div class="tech-name">GEE Analysis Script</div>
+        <div class="tech-desc"><code>bizerte_reforest_v4.js</code> — Sentinel-2 composite, 10+ spectral indices, 3-source consensus labeling, Random Forest (250 trees, 34 features), MCE priority score, GeoJSON export.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🌐</div>
+        <div class="tech-name">Web Platform</div>
+        <div class="tech-desc"><code>bizforest_website/</code> — This multi-page website. Interactive GIS map (Leaflet.js), field survey form, planting logger, incident reporting, data statistics page.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">📱</div>
+        <div class="tech-name">Mobile App</div>
+        <div class="tech-desc"><code>bizerte_reforest_agent/</code> — Flutter app "BizForest" with offline map (OSM), Firebase sync, GPS planting records, AI assistant (OpenRouter), 4 user role types.</div>
+      </div>
+    </div>
+
+    <h2>Technology Stack</h2>
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-icon">📡</div>
+        <div class="tech-name">Google Earth Engine</div>
+        <div class="tech-desc">Cloud-based satellite processing. Used for all raster analysis, classification, and GeoJSON export.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🤖</div>
+        <div class="tech-name">Random Forest</div>
+        <div class="tech-desc">GEE's built-in smileRandomForest classifier. 250 trees, 34 features, spatial cross-validation.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🗺️</div>
+        <div class="tech-name">Leaflet.js</div>
+        <div class="tech-desc">Open-source JS mapping library used for the interactive web map and GeoJSON layer rendering.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">📱</div>
+        <div class="tech-name">Flutter</div>
+        <div class="tech-desc">Google's cross-platform mobile framework. Used for the BizForest field app (iOS + Android).</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🔥</div>
+        <div class="tech-name">Firebase Firestore</div>
+        <div class="tech-desc">Real-time cloud database for saving field surveys, planting records, and incidents from the mobile app.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">💬</div>
+        <div class="tech-name">OpenRouter (LLM)</div>
+        <div class="tech-desc">AI agent integrated into the mobile app to answer field agents' questions about species and protocols.</div>
+      </div>
+    </div>
+
+    <h2>GeoJSON Output Files</h2>
+    <ul class="file-list">
+      <li><code>bizerte_boundary.geojson</code> <span class="file-desc">— Governorate boundary (FAO GAUL 2015)</span></li>
+      <li><code>tree_cover.geojson</code> <span class="file-desc">— RF-classified tree cover polygons (≥ 0.2 ha)</span></li>
+      <li><code>very_high_priority.geojson</code> <span class="file-desc">— Reforestation zones with MCE score &gt; 0.58 (Level 4)</span></li>
+      <li><code>high_priority.geojson</code> <span class="file-desc">— MCE score 0.45–0.58 (Level 3)</span></li>
+      <li><code>priority_zones.geojson</code> <span class="file-desc">— All priority zones (Levels 2, 3, 4 merged)</span></li>
+      <li><code>candidate_land.geojson</code> <span class="file-desc">— All plantable bare/degraded land</span></li>
+    </ul>
+  </div>
+
+  <footer>
+    <div class="footer-logo">🌲 BizForest</div>
+    <div>Bizerte Governorate Reforestation Program · Internship Project · 2026</div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="map.html">Map</a>
+      <a href="data.html">Data</a>
+      <a href="about.html">About</a>
+    </div>
+  </footer>
+
+</body>
+</html>

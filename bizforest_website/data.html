@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data & Stats — BizForest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/nav.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #1e8449; --green-dark: #145a32; --green-light: #e6f4ea;
+      --accent: #1a73e8; --accent-light: #e8f0fe;
+      --text: #202124; --text2: #5f6368; --border: #e0e0e0;
+      --bg: #f8f9fa; --surface: #ffffff;
+      --red: #d93025; --red-light: #fce8e6;
+      --orange: #f29900; --orange-light: #fef7e0;
+      --yellow: #fbbc04; --yellow-light: #fef9c3;
+    }
+    body { font-family: 'Roboto', sans-serif; color: var(--text); background: var(--bg); }
+    a { text-decoration: none; color: inherit; }
+
+    nav.site-nav { position: sticky; top: 0; }
+
+    .page { max-width: 1100px; margin: 0 auto; padding: 48px 40px; }
+    .page-title { font-family: 'Google Sans', sans-serif; font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+    .page-sub { font-size: 14px; color: var(--text2); margin-bottom: 40px; }
+
+    /* KPI grid */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 40px; }
+    .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .kpi-val { font-family: 'Google Sans', sans-serif; font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
+    .kpi-unit { font-size: 14px; color: var(--text2); margin-left: 3px; }
+    .kpi-label { font-size: 12px; color: var(--text2); margin-top: 6px; }
+    .kpi-trend { font-size: 11px; margin-top: 8px; font-weight: 500; }
+    .trend-up { color: var(--green); }
+    .trend-down { color: var(--red); }
+
+    /* Two-col layout */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; }
+    .card-title { font-family: 'Google Sans', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .card-sub { font-size: 12px; color: var(--text2); margin-bottom: 20px; }
+
+    /* Priority bars */
+    .pbar-row { margin-bottom: 16px; }
+    .pbar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .pbar-label { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+    .pbar-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .pbar-count { font-size: 12px; color: var(--text2); }
+    .pbar-bg { height: 6px; background: var(--border); border-radius: 3px; }
+    .pbar-fill { height: 100%; border-radius: 3px; }
+
+    /* Indices table */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: var(--bg); }
+    th { padding: 10px 12px; text-align: left; font-weight: 500; color: var(--text2); border-bottom: 2px solid var(--border); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+    .tag-green { background: var(--green-light); color: var(--green); }
+    .tag-blue { background: var(--accent-light); color: var(--accent); }
+    .tag-orange { background: var(--orange-light); color: #7d5700; }
+    .tag-gray { background: var(--bg); color: var(--text2); border: 1px solid var(--border); }
+
+    /* Pipeline */
+    .pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 40px; }
+    .pipe-step { padding: 20px 16px; border-right: 1px solid var(--border); position: relative; }
+    .pipe-step:last-child { border-right: none; }
+    .pipe-arrow { position: absolute; right: -10px; top: 50%; transform: translateY(-50%); color: var(--text2); font-size: 16px; z-index: 1; }
+    .pipe-step:last-child .pipe-arrow { display: none; }
+    .pipe-num { font-family: 'Google Sans', sans-serif; font-size: 11px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .pipe-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .pipe-desc { font-size: 12px; color: var(--text2); line-height: 1.4; }
+
+    /* Classes legend */
+    .classes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .class-item { border-radius: 8px; border: 1px solid var(--border); padding: 14px; }
+    .class-color { width: 100%; height: 6px; border-radius: 3px; margin-bottom: 10px; }
+    .class-name { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+    .class-desc { font-size: 11px; color: var(--text2); }
+
+    footer {
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding: 24px 40px; display: flex; align-items: center; justify-content: space-between;
+      font-size: 13px; color: var(--text2);
+    }
+    .footer-logo { font-family: 'Google Sans', sans-serif; font-weight: 700; color: var(--green); font-size: 16px; }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a { color: var(--text2); }
+    .footer-links a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="nav-logo">🌲 BizForest</div>
+    <div class="nav-links">
+      <a class="nav-link" href="index.html">Home</a>
+      <a class="nav-link" href="map.html">Map Platform</a>
+      <a class="nav-link active" href="data.html">Data & Stats</a>
+      <a class="nav-link" href="about.html">About</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-title">Data & Statistics</div>
+    <div class="page-sub">Bizerte Governorate · Sentinel-2 Spring 2024 · GEE Analysis V4</div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div><span class="kpi-val">383k</span><span class="kpi-unit">ha</span></div>
+        <div class="kpi-label">Total area mapped</div>
+        <div class="kpi-trend trend-up">▲ Full governorate coverage</div>
+      </div>
+      <div class="kpi-card">
+        <div><span class="kpi-val">14.2k</span><span class="kpi-unit">ha</span></div>
+        <div class="kpi-label">Deforested since 2000 (Hansen)</div>
+        <div class="kpi-trend trend-down">▼ Forest loss 2000–2023</div>
+      </div>
+      <div class="kpi-card">
+        <div><span class="kpi-val">84</span><span class="kpi-unit">zones</span></div>
+        <div class="kpi-label">Priority zones identified</div>
+        <div class="kpi-trend" style="color:var(--orange)">12 very high · 28 high</div>
+      </div>
+      <div class="kpi-card">
+        <div><span class="kpi-val">10</span><span class="kpi-unit">m</span></div>
+        <div class="kpi-label">Spatial resolution (Sentinel-2)</div>
+        <div class="kpi-trend" style="color:var(--accent)">EPSG:32632 · UTM 32N</div>
+      </div>
+    </div>
+
+    <!-- Priority + RF Classes -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Priority Breakdown</div>
+        <div class="card-sub">MCE score — 4 weighted criteria</div>
+
+        <div class="pbar-row">
+          <div class="pbar-header">
+            <div class="pbar-label"><div class="pbar-dot" style="background:#d93025"></div>Very High (&gt; 0.58)</div>
+            <span class="pbar-count">12 zones</span>
+          </div>
+          <div class="pbar-bg"><div class="pbar-fill" style="width:15%;background:#d93025"></div></div>
+        </div>
+        <div class="pbar-row">
+          <div class="pbar-header">
+            <div class="pbar-label"><div class="pbar-dot" style="background:#f29900"></div>High (0.45–0.58)</div>
+            <span class="pbar-count">28 zones</span>
+          </div>
+          <div class="pbar-bg"><div class="pbar-fill" style="width:35%;background:#f29900"></div></div>
+        </div>
+        <div class="pbar-row">
+          <div class="pbar-header">
+            <div class="pbar-label"><div class="pbar-dot" style="background:#fbbc04"></div>Moderate (0.30–0.45)</div>
+            <span class="pbar-count">24 zones</span>
+          </div>
+          <div class="pbar-bg"><div class="pbar-fill" style="width:30%;background:#fbbc04"></div></div>
+        </div>
+        <div class="pbar-row">
+          <div class="pbar-header">
+            <div class="pbar-label"><div class="pbar-dot" style="background:#1e8449"></div>Low (≤ 0.30)</div>
+            <span class="pbar-count">20 zones</span>
+          </div>
+          <div class="pbar-bg"><div class="pbar-fill" style="width:20%;background:#1e8449"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">MCE Priority Weights</div>
+        <div class="card-sub">Multi-Criteria Evaluation — composite score</div>
+        <table>
+          <thead><tr><th>Criterion</th><th>Weight</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td>🌡️ Thermal stress (LST)</td><td><strong>35%</strong></td><td>Landsat-9</td></tr>
+            <tr><td>🏘️ Urban density</td><td><strong>30%</strong></td><td>S2 NDBI + UI</td></tr>
+            <tr><td>🌳 Distance to trees</td><td><strong>20%</strong></td><td>RF tree cover</td></tr>
+            <tr><td>🏜️ Bareness (inv. NDVI)</td><td><strong>15%</strong></td><td>S2 NDVI</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Spectral Indices -->
+    <div class="card" style="margin-bottom:40px">
+      <div class="card-title">Spectral Indices Computed</div>
+      <div class="card-sub">Calculated from Sentinel-2 SR Harmonized — Spring 2024 median composite</div>
+      <table>
+        <thead><tr><th>Index</th><th>Formula (bands)</th><th>Used for</th><th>Type</th></tr></thead>
+        <tbody>
+          <tr><td><strong>NDVI</strong></td><td>(B8−B4)/(B8+B4)</td><td>Vegetation density, tree detection threshold &gt; 0.35</td><td><span class="tag tag-green">Vegetation</span></td></tr>
+          <tr><td><strong>NDRE</strong></td><td>(B8−B5)/(B8+B5)</td><td>Tree vs. cropland discrimination (Red-Edge)</td><td><span class="tag tag-green">Vegetation</span></td></tr>
+          <tr><td><strong>EVI</strong></td><td>2.5×(B8−B4)/(B8+6B4−7.5B2+1)</td><td>Dense canopy, less saturation than NDVI</td><td><span class="tag tag-green">Vegetation</span></td></tr>
+          <tr><td><strong>SAVI</strong></td><td>(B8−B4)/(B8+B4+0.5)×1.5</td><td>Vegetation in bare soil areas</td><td><span class="tag tag-green">Vegetation</span></td></tr>
+          <tr><td><strong>GNDVI</strong></td><td>(B8−B3)/(B8+B3)</td><td>Chlorophyll content — mature tree health</td><td><span class="tag tag-green">Vegetation</span></td></tr>
+          <tr><td><strong>BSI</strong></td><td>(B11+B4−B8−B2)/(B11+B4+B8+B2)</td><td>Bare soil index — priority weighting</td><td><span class="tag tag-orange">Soil</span></td></tr>
+          <tr><td><strong>NDBI</strong></td><td>(B11−B8)/(B11+B8)</td><td>Built-up detection</td><td><span class="tag tag-gray">Urban</span></td></tr>
+          <tr><td><strong>UI</strong></td><td>(B11−B8)/(B11+B8)</td><td>Urban Index — imperviousness</td><td><span class="tag tag-gray">Urban</span></td></tr>
+          <tr><td><strong>MNDWI</strong></td><td>(B3−B11)/(B3+B11)</td><td>Water mask — exclude lakes, sea</td><td><span class="tag tag-blue">Water</span></td></tr>
+          <tr><td><strong>NDWI</strong></td><td>(B3−B8)/(B3+B8)</td><td>Open water confirmation</td><td><span class="tag tag-blue">Water</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- RF Classes -->
+    <div class="card" style="margin-bottom:40px">
+      <div class="card-title">Random Forest Output — 4 Land-Cover Classes</div>
+      <div class="card-sub">250 decision trees · 34 input features · Spatial cross-validation (4 folds)</div>
+      <div class="classes">
+        <div class="class-item">
+          <div class="class-color" style="background:#1e8449"></div>
+          <div class="class-name">Class 0 — Trees / Forest</div>
+          <div class="class-desc">Confirmed by ≥2 of 4 sources (DW, ESA WC, Hansen, spectral). Protected — not included in candidates.</div>
+        </div>
+        <div class="class-item">
+          <div class="class-color" style="background:#f59e0b"></div>
+          <div class="class-name">Class 1 — Bare / Degraded</div>
+          <div class="class-desc">Candidate for reforestation. Receives MCE priority score. Main target of the analysis.</div>
+        </div>
+        <div class="class-item">
+          <div class="class-color" style="background:#78909c"></div>
+          <div class="class-name">Class 2 — Built / Impervious</div>
+          <div class="class-desc">Excluded from candidates (NDBI + UI + 25m buffer). Cannot be planted.</div>
+        </div>
+        <div class="class-item">
+          <div class="class-color" style="background:#90caf9"></div>
+          <div class="class-name">Class 3 — Other</div>
+          <div class="class-desc">Water, seasonal crops, shrubland. Excluded via MNDWI + DW + NDWI + 60m water buffer.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pipeline -->
+    <div class="card-title" style="margin-bottom:16px">Full Processing Pipeline</div>
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-arrow">›</div>
+        <div class="pipe-num">Step 1</div>
+        <div class="pipe-title">GEE Ingestion</div>
+        <div class="pipe-desc">S2_SR_HARMONIZED filtered by date & cloud cover (&lt;10%). SCL cloud mask applied. Median composite.</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-arrow">›</div>
+        <div class="pipe-num">Step 2</div>
+        <div class="pipe-title">Consensus Labels</div>
+        <div class="pipe-desc">Dynamic World mode + ESA WC + Hansen + spectral. Pixel labeled "tree" if ≥2 sources agree.</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-arrow">›</div>
+        <div class="pipe-num">Step 3</div>
+        <div class="pipe-title">RF Classification</div>
+        <div class="pipe-desc">700 samples/class × 4 classes. 34 features. Validated with 4-fold spatial cross-validation.</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">Step 4</div>
+        <div class="pipe-title">MCE + Export</div>
+        <div class="pipe-desc">Priority score applied to Class 1 pixels. 4 levels classified. GeoJSON + GeoTIFF exported to Google Drive.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">🌲 BizForest</div>
+    <div>Bizerte Governorate Reforestation Program · Sentinel-2 2024 · GEE V4</div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="map.html">Map</a>
+      <a href="data.html">Data</a>
+      <a href="about.html">About</a>
+    </div>
+  </footer>
+
+</body>
+</html>
