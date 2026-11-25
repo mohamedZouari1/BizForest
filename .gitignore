@@ -33,3 +33,6 @@ Thumbs.db
 /bizforest_website/assets/geojson/bizerte_reforestation_candidates.geojson
 /bizforest_website/assets/geojson/bizerte_tree_cover.geojson
 /bizforest_website/assets/geojson/bizerte_very_high_priority.geojson
+
+# Local secrets (Firebase API key)
+firebase_config.json

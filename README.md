@@ -225,12 +225,22 @@ BizForest/
 
 You need the [Flutter SDK](https://docs.flutter.dev/get-started/install) (Dart 3.3 or newer), and Android Studio or Xcode.
 
+The Firebase API key is **not** stored in this repository. Before running, create your local config:
+
 ```bash
 cd bizerte_reforest_agent
-flutter pub get
-flutter run              # on a connected device or emulator
-flutter build apk        # build an Android APK
+cp firebase_config.example.json firebase_config.json   # then paste your Firebase Web API key inside
 ```
+
+Then build and run:
+
+```bash
+flutter pub get
+flutter run --dart-define-from-file=firebase_config.json          # on a device or emulator
+flutter build apk --dart-define-from-file=firebase_config.json    # build an Android APK
+```
+
+In VS Code, press **F5**: the included `.vscode/launch.json` passes the config automatically. Without a key, the app still runs, but cloud sync is turned off.
 
 - GPS, camera and internet permissions are described in [`NATIVE_SETUP.md`](bizerte_reforest_agent/NATIVE_SETUP.md).
 - **Optional field assistant:** open the Agent screen, paste an [OpenRouter](https://openrouter.ai) API key and choose a model. Without a key, the assistant uses its offline guide.

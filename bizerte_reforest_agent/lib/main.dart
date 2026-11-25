@@ -15,13 +15,18 @@ import 'screens/incidents_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    debugPrint('Firebase successfully initialized!');
-  } catch (e) {
-    debugPrint('Firebase not configured yet: $e');
+  if (!DefaultFirebaseOptions.isConfigured) {
+    debugPrint('Firebase API key missing: run with '
+        '--dart-define-from-file=firebase_config.json. Cloud sync disabled.');
+  } else {
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      debugPrint('Firebase successfully initialized!');
+    } catch (e) {
+      debugPrint('Firebase not configured yet: $e');
+    }
   }
 
   final storage = StorageService();
