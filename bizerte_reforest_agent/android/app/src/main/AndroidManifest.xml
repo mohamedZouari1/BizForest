@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:label="bizerte_reforest_agent"
+        android:label="BizForest"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
