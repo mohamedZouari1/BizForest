@@ -16,7 +16,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   if (!DefaultFirebaseOptions.isConfigured) {
-    debugPrint('Firebase API key missing: run with '
+    debugPrint('Firebase config missing: run with '
         '--dart-define-from-file=firebase_config.json. Cloud sync disabled.');
   } else {
     try {

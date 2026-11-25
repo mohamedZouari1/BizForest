@@ -1,27 +1,32 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 
-// The API key is not stored in the repository. Provide it at build time:
+// Firebase settings are NOT stored in this repository.
+// Copy firebase_config.example.json to firebase_config.json, fill in the
+// values from your own Firebase project, then run:
 //   flutter run --dart-define-from-file=firebase_config.json
-// (copy firebase_config.example.json to firebase_config.json and fill it in)
 const String _apiKey = String.fromEnvironment('FIREBASE_API_KEY');
+const String _appId = String.fromEnvironment('FIREBASE_APP_ID');
+const String _messagingSenderId =
+    String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID');
+const String _projectId = String.fromEnvironment('FIREBASE_PROJECT_ID');
+const String _authDomain = String.fromEnvironment('FIREBASE_AUTH_DOMAIN');
+const String _storageBucket = String.fromEnvironment('FIREBASE_STORAGE_BUCKET');
+const String _measurementId = String.fromEnvironment('FIREBASE_MEASUREMENT_ID');
 
 class DefaultFirebaseOptions {
-  static bool get isConfigured => _apiKey.isNotEmpty;
+  static bool get isConfigured =>
+      _apiKey.isNotEmpty && _appId.isNotEmpty && _projectId.isNotEmpty;
 
-  static FirebaseOptions get currentPlatform {
-    // For simplicity, we will use the same Web config across all platforms 
-    // since the user provided the Web config, and it works perfectly for 
-    // basic Firestore usage on Android/iOS in development.
-    return web;
-  }
+  // The same Web config is used on all platforms.
+  static FirebaseOptions get currentPlatform => web;
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: _apiKey,
-    appId: '1:131492730323:web:e18c1beb90885d170b8b26',
-    messagingSenderId: '131492730323',
-    projectId: 'bizforest-7cac3',
-    authDomain: 'bizforest-7cac3.firebaseapp.com',
-    storageBucket: 'bizforest-7cac3.firebasestorage.app',
-    measurementId: 'G-N87ZKBXR46',
+    appId: _appId,
+    messagingSenderId: _messagingSenderId,
+    projectId: _projectId,
+    authDomain: _authDomain,
+    storageBucket: _storageBucket,
+    measurementId: _measurementId,
   );
 }
